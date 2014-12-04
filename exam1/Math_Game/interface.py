@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from expresion import Expression
+from sqlalchemy import desc
 from player import Player
 from connect import Base
 import random
@@ -9,9 +10,13 @@ import math
 
 def set_expression(session):
     signs = ['+', '-', '*', '/', '^']
-    first_operand = random.randrange(10)
-    second_operand = random.randrange(10)
-    sign_char = random.choice(signs)
+    second_operand = 0
+    sign_char = '/'
+    while second_operand == 0 and sign_char == '/':
+        first_operand = random.randrange(10)
+        second_operand = random.randrange(10)
+        sign_char = random.choice(signs)
+
     new_expression = Expression(left_operand=first_operand, sign=sign_char, right_operand=second_operand, result="")
     result = resolve_expression(new_expression)
     new_expression.result = result
@@ -21,18 +26,25 @@ def set_expression(session):
 
 
 def resolve_expression(new_expression):
-    sign_dict = {
-                '+': new_expression.left_operand + new_expression.right_operand,
-                '-': new_expression.left_operand - new_expression.right_operand,
-                '*': new_expression.left_operand * new_expression.right_operand,
-                '^': int(math.pow(new_expression.left_operand, new_expression.right_operand)),
-                '/': new_expression.left_operand / new_expression.right_operand
-                }
-    if new_expression.right_operand == 0 and new_expression.sign == '/':
-        print("Error! Devision by zero!")
-    else:
-        result = sign_dict[new_expression.sign]
-    return str(result)
+    if new_expression.sign == '+':
+        answer = new_expression.left_operand + new_expression.right_operand
+    elif new_expression.sign == '-':
+        answer = new_expression.left_operand - new_expression.right_operand
+    elif new_expression.sign == '*':
+        answer = new_expression.left_operand * new_expression.right_operand
+    elif new_expression.sign == '^':
+        answer = int(math.pow(new_expression.left_operand, new_expression.right_operand))
+    elif new_expression.sign == '/':
+        answer = new_expression.left_operand / float(new_expression.right_operand)
+
+    answer = str(answer)
+    if '.' in answer:
+        split_answer = answer.split('.')
+        if split_answer[1] == '0':
+            answer = split_answer[0]
+        else:
+            answer = "{}.{}".format(split_answer[0], split_answer[1][:2])
+    return answer
 
 
 def start(session):
@@ -45,8 +57,9 @@ def start(session):
     while(True):
         expression = set_expression(session)
         print("What is the answer to " + str(expression))
-        answer = input("?>")
-        if expression.result == answer:
+        player_answer = input("?>")
+
+        if expression.result == player_answer:
             print("Correct")
             points_for_correct_answer += 1
         else:
@@ -60,7 +73,7 @@ def start(session):
 
 def highscores(session):
     print("This is the current top10:")
-    result = session.query(Player).all()
+    result = session.query(Player).order_by(Player.high_score.desc()).limit(10)
     for player in result:
         print (player)
 
@@ -68,6 +81,7 @@ def highscores(session):
 def menu(session):
     game_menu = {'highscores': highscores, 'start': start}
     print("Welcome to the \"Do you even math\"?")
+    print("Floating point numbers are rounded up to 2 digits after '.'! (0.12345 = 0.12)")
     print("Here are your options:")
     print("- start")
     print("- highscores")

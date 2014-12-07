@@ -1,5 +1,7 @@
 import random
-
+#знам, че не трябва да правя така
+#по-правилно ли е да ги вкарам в main и да ги подавам като аргументи на функциите
+#има ли друг начин?
 PLAYER_SYMBOL = ''
 COMPUTER_SYMBOL = ''
 board = ['.', '.', '.', '.', '.', '.', '.', '.', '.']
@@ -18,7 +20,9 @@ def print_board():
 def set_board(spot, symbol):
     board[int(spot)] = symbol
 
-
+# когато една функция не ни интересува какво връща,
+# трябва ли да върнем нещо (например празен стринг), или може 
+# и без да връщаме нищо
 def choose_X_or_O():
     global PLAYER_SYMBOL
     global COMPUTER_SYMBOL
@@ -36,7 +40,7 @@ def choose_X_or_O():
 
 
 def is_spot_free(spot):
-    if board[int(spot)-1] != '.':
+    if board[spot] == '.':
         return True
     else:
         return False
@@ -46,14 +50,13 @@ def is_winner(sign):
     if(
         board[0] == sign and board[1] == sign and board[2] == sign or
         board[3] == sign and board[4] == sign and board[5] == sign or
-        board[7] == sign and board[7] == sign and board[8] == sign or
+        board[6] == sign and board[7] == sign and board[8] == sign or
         board[0] == sign and board[3] == sign and board[6] == sign or
         board[1] == sign and board[4] == sign and board[7] == sign or
         board[2] == sign and board[5] == sign and board[8] == sign or
         board[2] == sign and board[4] == sign and board[6] == sign or
         board[0] == sign and board[4] == sign and board[8] == sign
     ):
-        #print("{} is the winner!".format(sign))
         return True
     else:
         return False
@@ -61,11 +64,69 @@ def is_winner(sign):
 
 def set_player_move():
     print_board()
-    move = ' '
-    while move not in '1 2 3 4 5 6 7 8 9'.split() or is_spot_free(int(move)):
-        move = input("Enter the position you want(1-9):")
+    move = input("Enter the position (1-9):")
+    while move not in '1 2 3 4 5 6 7 8 9'.split():
+        move = input("Position out of range(1-9)! Enter new posiition:")
+
+    while not is_spot_free(int(move)-1):
+        move = input("The position is already taken! Enter new position:")
     set_board(int(move)-1, PLAYER_SYMBOL)
     is_winner(PLAYER_SYMBOL)
+    return int(move)-1
+
+
+def block_player_to_win():
+    block_list = [[0, 1, 2],
+                 [3, 4, 5],
+                 [6, 7, 8],
+                 [0, 3, 6],
+                 [1, 4, 7],
+                 [2, 5, 8],
+                 [2, 4, 6],
+                 [0, 4, 8]]
+
+    for line in block_list:
+        count = 0
+        for i, position in enumerate(line):
+            if board[position] == PLAYER_SYMBOL:
+                count += 1
+            else:
+                empty_spot = position
+        if count == 2 and board[empty_spot] == '.':
+            return set_board(empty_spot, COMPUTER_SYMBOL)
+    return False
+
+
+def last_computer_move():
+    win_positions = [[0, 1, 2],
+                    [3, 4, 5],
+                    [6, 7, 8],
+                    [0, 3, 6],
+                    [1, 4, 7],
+                    [2, 5, 8],
+                    [2, 4, 6],
+                    [0, 4, 8]]
+
+    for line in win_positions:
+        count = 0
+        for i, position in enumerate(line):
+            if board[position] == COMPUTER_SYMBOL:
+                count += 1
+            else:
+                empty_spot = position
+        if count == 2 and board[empty_spot] == '.':
+            return set_board(empty_spot, COMPUTER_SYMBOL)
+    return False
+
+
+def game_play():
+    player_move = set_player_move()
+    if full_board():
+        return "Game over"
+
+    if last_computer_move() is False:
+        if block_player_to_win() is False:
+            set_computer_move()
 
 
 def set_computer_move():
@@ -96,11 +157,9 @@ def main():
             print("{} is the winner!".format(COMPUTER_SYMBOL))
             break
         else:
-            set_player_move()
-            set_computer_move()
-    #set_player_move()
-    # print(board)
-    print_board()
+            game_play()
+
+    return print_board()
 
 if __name__ == '__main__':
     main()

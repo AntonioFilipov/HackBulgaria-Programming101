@@ -59,16 +59,6 @@ def insert_into_database(cursor, db):
                             VALUES(?,?,?,?)''', (2, "5D", "2014/07/20", "14:34:34"))
     db.commit()
 
-    cursor.execute('''
-        INSERT INTO reservations(username, projection_id, row, col)
-                            VALUES(?,?,?,?)''', ("RadoRado", 1, 2, 4))
-    db.commit()
-
-    cursor.execute('''
-        INSERT INTO reservations(username, projection_id, row, col)
-                            VALUES(?,?,?,?)''', ("Alex", 1, 1, 1))
-    db.commit()
-
 
 def view_result(cursor):
     result = cursor.execute("SELECT movies.name, projections.type FROM movies INNER JOIN projections ON movies.id = projections.movie_id")

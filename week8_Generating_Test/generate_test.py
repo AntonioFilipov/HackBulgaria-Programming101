@@ -8,32 +8,8 @@ def read_file(file_name):
 
 def set_name_of_test_file(read_file):
     split_name = read_file.split('.')
-    test_name = "{}_test.py".format(split_name[0])
+    test_name = "{}.py".format(split_name[0])
     return test_name
-
-
-def create_test_file(file_name):
-    write_file = open(file_name, "w")
-    content = []
-    write_file.write("\n".join(content))
-    write_file.close()
-
-
-def get_file_template(filename):
-    return """
-    import unittest
-    
-    class {name_of_class}(unittest.TestCase):
-        This is a test class for testing is_prime funciton
-        def testCase1(self):
-            self.assertTrue(is_prime(7), "7 should noot be prime")
-
-        def testCase2(self):
-            self.assertFalse(is_prime(8), "8 should be prime")
-
-    if __name__ == '__main__':
-        unittest.main()
-    """
 
 
 def split_file_content(filename):
@@ -82,33 +58,30 @@ def get_test_cases(split_content):
 def get_test_case_function(test_cases):
     functions = []
     for item in test_cases:
-        functions.append(item.split("->")[1].split("==")[0])
+        functions.append(item.split("->")[1].split("==")[0].strip())
     return functions
 
 
 def get_test_case_description(test_cases):
     descriptions = []
     for item in test_cases:
-        descriptions.append(item.split("->")[0])
+        descriptions.append(item.split("->")[0].strip())
     return descriptions
 
 
-def main():
-    filename = "is_prime_test.dsl"
+def make_test_file(filename):
     test_file_content = []
     test_file_content.append("import unittest")
-    #test_file_name = set_name_of_test_file(filename)
-    #create_test_file(test_file_name)
     split_content = split_file_content(filename)
     imports = get_imports(split_content)
     for item in imports:
         test_file_content.append("{}".format(item))
-    test_file_content.append("    class {}(unittest.TestCase):".format(set_test_class_name(filename)))
+    test_file_content.append("\n\nclass {}(unittest.TestCase):".format(set_test_class_name(filename)))
     file_description = get_description_of_test_file(split_content)
     test_file_content.append("    {}".format(file_description))
     test_cases = get_test_cases(split_content)
     for i, item in enumerate(test_cases):
-        test_file_content.append("    def testCase{}(self):".format(i+1))
+        test_file_content.append("\n    def testCase{}(self):".format(i+1))
         functions = get_test_case_function(test_cases)
         description = get_test_case_description(test_cases)
         if "True" in item:
@@ -117,8 +90,21 @@ def main():
             test_file_content.append("        self.assertFalse({}, {})".format(functions[i], description[i]))
     test_file_content.append("if __name__ == '__main__':")
     test_file_content.append("    unittest.main()")
+    return test_file_content
+
+
+def create_test_file(test_file_name, test_file_content):
+    write_file = open(test_file_name, "w")
     for item in test_file_content:
-        print(item)
+        write_file.write(item + '\n')
+    write_file.close()
+
+
+def main():
+    filename = "is_prime_test.dsl"
+    test_file_name = set_name_of_test_file(filename)
+    test_file_content = make_test_file(filename)
+    create_test_file(test_file_name, test_file_content)
 
 if __name__ == '__main__':
     main()

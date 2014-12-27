@@ -1,0 +1,6 @@
+body{
+      background-image: url("/home/tonkata/Documents/Programming101/week8_Website/static/img/search.jpg");
+      background-attachment: fixed;
+      background-position: 40% 20%; 
+      background-size: 100%;
+}
